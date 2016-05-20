@@ -150,6 +150,13 @@ import org.rhq.core.domain.util.OSGiVersionComparator;
         + "   AND pv.repoPackageVersions IS EMPTY " //
         + "   AND pv.installedPackages IS EMPTY " //
         + "   AND pv.installedPackageHistory IS EMPTY "),
+    @NamedQuery(name = PackageVersion.QUERY_DELETE_BY_RESOURCES, query = "DELETE PackageVersion pv "
+        + " WHERE pv.id IN " //
+        + "   ( SELECT ip.packageVersion.id FROM InstalledPackage ip WHERE ip.resource.id IN ( :resourceIds ) ) " //
+        + "   AND pv.repoPackageVersions IS EMPTY " //
+        + "   AND pv.installedPackages IS EMPTY " //
+        + "   AND pv.installedPackageHistory IS EMPTY "),
+
     // the bulk delete that removes the PVPV mapping from orphaned package versions
     @NamedQuery(name = PackageVersion.DELETE_PVPV_IF_NO_CONTENT_SOURCES_OR_REPOS, query = "DELETE ProductVersionPackageVersion pvpv "
         + " WHERE pvpv.packageVersion.id NOT IN (SELECT pvcs.packageVersion.id "
@@ -251,6 +258,7 @@ public class PackageVersion implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    public static final String QUERY_DELETE_BY_RESOURCES = "PackageVersion.deleteByResourcesfindByPackageVersion";
     public static final String QUERY_FIND_BY_PACKAGE_VERSION = "PackageVersion.findByPackageVersion";
     public static final String QUERY_FIND_BY_PACKAGE_VER_ARCH = "PackageVersion.findByPackageVerArch";
 

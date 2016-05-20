@@ -43,7 +43,7 @@ import javax.xml.bind.annotation.XmlTransient;
  */
 @Entity
 @NamedQueries( {
-    @NamedQuery(name = PackageBits.QUERY_PACKAGE_BITS_LOADED_STATUS_PACKAGE_VERSION_ID, query = "" //        
+    @NamedQuery(name = PackageBits.QUERY_PACKAGE_BITS_LOADED_STATUS_PACKAGE_VERSION_ID, query = "" //
         + "   SELECT new org.rhq.core.domain.content.composite.LoadedPackageBitsComposite( " //
         + "          pv.id, " //
         + "          pv.fileName, " //
@@ -57,11 +57,18 @@ import javax.xml.bind.annotation.XmlTransient;
         + " DELETE PackageBits AS pb " //
         + " WHERE pb.id NOT IN ( SELECT pv.packageBits.id " //
         + "                        FROM PackageVersion pv " //
-        + "                       WHERE pv.packageBits IS NOT NULL ) ") })
+        + "                       WHERE pv.packageBits IS NOT NULL ) "),
+    @NamedQuery(name = PackageBits.QUERY_DELETE_BY_RESOURCES, query = "DELETE PackageBits pb " + " WHERE pb.id IN " //
+        + "   ( SELECT pv.packageBits.id FROM PackageBits WHERE pv.id IN " //
+        + "     ( SELECT ip.packageVersion.id FROM InstalledPackage ip WHERE ip.resource.id IN ( :resourceIds ) ) " //
+        + "     AND pv.repoPackageVersions IS EMPTY " //
+        + "     AND pv.installedPackages IS EMPTY " //
+        + "     AND pv.installedPackageHistory IS EMPTY ) ) ") })
 @Table(name = PackageBits.TABLE_NAME)
 public class PackageBits implements Serializable {
     public static final String TABLE_NAME = "RHQ_PACKAGE_BITS";
 
+    public static final String QUERY_DELETE_BY_RESOURCES = "PackageBits.deleteByResources";
     public static final String QUERY_PACKAGE_BITS_LOADED_STATUS_PACKAGE_VERSION_ID = "PackageBits.isLoaded";
     public static final String DELETE_IF_NO_PACKAGE_VERSION = "PackageBits.deleteIfNoPackageVersion";
 
@@ -69,7 +76,7 @@ public class PackageBits implements Serializable {
      *  Can be used as initial contents for a PackageVersion's PackageBits whenever a predictable non-null
      *  value is required. Use as an initial value for the PackageBits.blob.bits. The value will
      *  typically be replaced with the actual streamed content bits...<br>
-     *  Note: This is a String and not a byte[] because gwt can't handle String.getBytes(). 
+     *  Note: This is a String and not a byte[] because gwt can't handle String.getBytes().
      */
     public static final String EMPTY_BLOB = " ";
 
@@ -104,7 +111,7 @@ public class PackageBits implements Serializable {
 
     /**
      * @return the blob wrapper. This is never null although the actual bits (PackageBitsBlob.getBits()) can be null.
-     * 
+     *
      * For large file contents, you should use ContentManager.updateBlobStream() to write and
      * ContentManager.writeBlobOutToStream() to read/direct file contents into as no byte[] is used.
      */
@@ -114,8 +121,8 @@ public class PackageBits implements Serializable {
     }
 
     /**
-     * For large file contents, you should use ContentManager.updateBlobStream() to write and 
-     * ContentManager.writeBlobOutToStream() to stream the binary bits and avoid a byte[]. 
+     * For large file contents, you should use ContentManager.updateBlobStream() to write and
+     * ContentManager.writeBlobOutToStream() to stream the binary bits and avoid a byte[].
      */
     public void setBlob(PackageBitsBlob blob) {
         this.blob = blob;

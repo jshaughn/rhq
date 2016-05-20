@@ -58,6 +58,8 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 
+import org.jboss.ejb3.annotation.TransactionTimeout;
+
 import org.rhq.core.db.DatabaseType;
 import org.rhq.core.db.DatabaseTypeFactory;
 import org.rhq.core.domain.alert.Alert;
@@ -76,7 +78,9 @@ import org.rhq.core.domain.configuration.ResourceConfigurationUpdate;
 import org.rhq.core.domain.content.ContentServiceRequest;
 import org.rhq.core.domain.content.InstalledPackage;
 import org.rhq.core.domain.content.InstalledPackageHistory;
+import org.rhq.core.domain.content.PackageBits;
 import org.rhq.core.domain.content.PackageInstallationStep;
+import org.rhq.core.domain.content.PackageVersion;
 import org.rhq.core.domain.content.ResourceRepo;
 import org.rhq.core.domain.criteria.ResourceCriteria;
 import org.rhq.core.domain.criteria.ResourceTypeCriteria;
@@ -596,6 +600,7 @@ public class ResourceManagerBean implements ResourceManagerLocal, ResourceManage
 
     @Override
     @TransactionAttribute(TransactionAttributeType.REQUIRES_NEW)
+    @TransactionTimeout(20 * 60)
     public void uninventoryResourceAsyncWork(Subject user, int resourceId) {
         if (!authorizationManager.isOverlord(user)) {
             throw new IllegalArgumentException("Only the overlord can execute out-of-band async resource delete method");
@@ -733,6 +738,8 @@ public class ResourceManagerBean implements ResourceManagerLocal, ResourceManage
             BundleResourceDeployment.QUERY_DELETE_BY_RESOURCES, //
             PackageInstallationStep.QUERY_DELETE_BY_RESOURCES, // steps BEFORE installed package history
             InstalledPackageHistory.QUERY_DELETE_BY_RESOURCES, // history BEFORE installed packages & content service requests
+            PackageBits.QUERY_DELETE_BY_RESOURCES, // remove bits for installed packages used only by these resources
+            PackageVersion.QUERY_DELETE_BY_RESOURCES, // remove package versions for installed packages used only by these resources
             InstalledPackage.QUERY_DELETE_BY_RESOURCES, //
             ContentServiceRequest.QUERY_DELETE_BY_RESOURCES, //
             ResourceOperationScheduleEntity.QUERY_DELETE_BY_RESOURCES, //
