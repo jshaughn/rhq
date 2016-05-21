@@ -59,7 +59,7 @@ import javax.xml.bind.annotation.XmlTransient;
         + "                        FROM PackageVersion pv " //
         + "                       WHERE pv.packageBits IS NOT NULL ) "),
     @NamedQuery(name = PackageBits.QUERY_DELETE_BY_RESOURCES, query = "DELETE PackageBits pb " + " WHERE pb.id IN " //
-        + "   ( SELECT pv.packageBits.id FROM PackageBits WHERE pv.id IN " //
+        + "   ( SELECT pv.packageBits.id FROM PackageVersion pv WHERE pv.id IN " //
         + "     ( SELECT ip.packageVersion.id FROM InstalledPackage ip WHERE ip.resource.id IN ( :resourceIds ) ) " //
         + "     AND pv.repoPackageVersions IS EMPTY " //
         + "     AND pv.installedPackages IS EMPTY " //
